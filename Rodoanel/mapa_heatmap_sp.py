@@ -25,6 +25,7 @@
 import folium
 import geopandas as gpd
 import json
+from folium.plugins import Draw
 
 from shapely.geometry import box
 
@@ -224,7 +225,7 @@ mapa = folium.Map(
 
     zoom_start=11,
 
-    tiles="cartodbpositron"
+    tiles="CartoDB dark_matter"
 )
 
 # ============================================================
@@ -356,6 +357,102 @@ for ponto in pontos_teste:
 # ============================================================
 
 folium.LayerControl().add_to(mapa)
+
+# ============================================================
+# FERRAMENTA DE DESENHO MANUAL
+# ============================================================
+#
+# Permite desenhar no mapa:
+#
+# ✔ pontos
+# ✔ linhas
+# ✔ polígonos
+# ✔ marcações
+#
+# Ideal para:
+#
+# - testes
+# - apresentações
+# - simulações
+#
+# ============================================================
+# ============================================================
+# FERRAMENTA DE DESENHO MANUAL
+# ============================================================
+
+Draw(
+
+    export=True,
+
+    filename="anotacoes_mapa.geojson",
+
+    position="topleft",
+
+    draw_options={
+
+        # ----------------------------------------------------
+        # LINHAS
+        # ----------------------------------------------------
+
+        "polyline": {
+    "shapeOptions": {
+        "color": "red",
+        "weight": 12,
+        "opacity": 0.7,
+        "smoothFactor": 2
+    }
+},
+
+        # ----------------------------------------------------
+        # POLÍGONOS
+        # ----------------------------------------------------
+
+        "polygon": {
+            "shapeOptions": {
+                "color": "orange",
+                "fillColor": "orange",
+                "fillOpacity": 0.5
+            }
+        },
+
+        # ----------------------------------------------------
+        # CÍRCULOS
+        # ----------------------------------------------------
+
+        "circle": {
+            "shapeOptions": {
+                "color": "yellow",
+                "fillColor": "yellow",
+                "fillOpacity": 0.4
+            }
+        },
+
+        # ----------------------------------------------------
+        # RETÂNGULOS
+        # ----------------------------------------------------
+
+        "rectangle": {
+            "shapeOptions": {
+                "color": "green",
+                "fillColor": "green",
+                "fillOpacity": 0.3
+            }
+        },
+
+        # ----------------------------------------------------
+        # MARCADORES
+        # ----------------------------------------------------
+
+        "marker": True
+
+    },
+
+    edit_options={
+        "edit": True
+    }
+
+).add_to(mapa)
+
 
 # ============================================================
 # 14. SALVAR MAPA
