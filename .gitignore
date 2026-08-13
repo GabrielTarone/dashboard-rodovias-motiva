@@ -1,0 +1,18 @@
+# Dependências do Node
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Arquivos do ambiente
+.env
+.env.*
+
+# Cache
+.cache/
+.vite/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

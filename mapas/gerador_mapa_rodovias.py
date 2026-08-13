@@ -1,9 +1,9 @@
 # ============================================================
-# MAPA INTERATIVO DO RODOANEL - TRECHO OESTE
+# MAPA INTERATIVO DE RODOVIAS MOTIVA
 # ============================================================
 #
 # OBJETIVO:
-# Criar um mapa interativo do Rodoanel utilizando:
+# Criar um mapa interativo de rodovias utilizando:
 #
 # - GeoJSON da rodovia
 # - Folium
@@ -11,10 +11,9 @@
 #
 # O mapa permite:
 #
-# ✔ Exibir o trecho Oeste
+# ✔ Exibir as linhas das rodovias
 # ✔ Adicionar pontos coloridos
 # ✔ Simular classificações
-# ✔ Futuramente integrar IA/classificação automática
 #
 # ============================================================
 
@@ -26,7 +25,7 @@ import folium
 import geopandas as gpd
 import json
 from folium.plugins import Draw
-
+from pathlib import Path
 from shapely.geometry import box
 
 # ============================================================
@@ -43,36 +42,49 @@ from shapely.geometry import box
 #
 # ============================================================
 
-arquivo = "classificacao_rocada.geojson"
+# ============================================================
+# CARREGAR RODOANEL (OESTE)
+# ============================================================
 
-# Abrir GeoJSON
-with open(arquivo, encoding="utf-8") as f:
-    geojson_data = json.load(f)
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+arquivo_vegetacao = BASE_DIR / "dados" / "vegetacao" / "classificacao_rocada.geojson"
+arquivo_dutra = BASE_DIR / "dados" / "rodovias" / "via_dutra.geojson"
+arquivo_autoban = BASE_DIR / "dados" / "rodovias" / "autoban.geojson"
 
 # Ler arquivo usando GeoPandas
-gdf = gpd.read_file(arquivo)
+gdf = gpd.read_file(arquivo_vegetacao)
 
 # Garantir sistema de coordenadas correto
 gdf = gdf.to_crs(epsg=4326)
 
 # ============================================================
-# 2. CONFIGURAÇÃO DOS TRECHOS
+# CARREGAR VIA DUTRA
 # ============================================================
-#
-# Cada trecho possui:
-#
-# - limite oeste
-# - limite leste
-# - limite sul
-# - limite norte
-# - cor padrão
-#
-# Isso permite futuramente:
-#
-# ✔ adicionar novos trechos
-# ✔ adicionar outras rodovias
-# ✔ organizar o sistema
-#
+
+# Ler GeoJSON da Via Dutra
+gdf_dutra = gpd.read_file(arquivo_dutra)
+
+# Garantir o mesmo sistema de coordenadas
+gdf_dutra = gdf_dutra.to_crs(epsg=4326)
+
+# Separar possíveis geometrias agrupadas
+gdf_dutra = gdf_dutra.explode(index_parts=False)
+
+# ============================================================
+# CARREGAR AUTOBAN
+# ============================================================
+
+gdf_autoban = gpd.read_file(arquivo_autoban)
+
+# Garantir sistema de coordenadas correto
+gdf_autoban = gdf_autoban.to_crs(epsg=4326)
+
+# Separar geometrias agrupadas, se existirem
+gdf_autoban = gdf_autoban.explode(index_parts=False)
+
+# ============================================================
+# 2. CONFIGURAÇÃO DOS TRECHOS DO RODOANEL
 # ============================================================
 
 TRECHOS = {
@@ -236,21 +248,87 @@ mapa = folium.Map(
 #
 # ============================================================
 
+# ============================================================
+# CAMADAS DE RODOVIAS
+# ============================================================
+
+# RODOANEL OESTE
 folium.GeoJson(
-
     gdf_trecho.__geo_interface__,
-
-    name="Trecho Oeste",
-
+    name="Trecho Oeste - Rodoanel",
     style_function=lambda x: {
-
-        "color": TRECHO_ATUAL["cor"],
-
+        "color": "blue",
         "weight": 7,
-
         "opacity": 0.95
     }
+).add_to(mapa)
 
+
+# VIA DUTRA
+folium.GeoJson(
+    gdf_dutra.__geo_interface__,
+    name="Via Dutra - BR-116",
+    style_function=lambda x: {
+        "color": "red",
+        "weight": 6,
+        "opacity": 0.95
+    }
+).add_to(mapa)
+
+
+# AUTOBAN - ANHANGUERA
+folium.GeoJson(
+    gdf_autoban[
+        gdf_autoban["rodovia"] == "SP-330"
+    ].__geo_interface__,
+    name="SP-330 - Anhanguera",
+    style_function=lambda x: {
+        "color": "orange",
+        "weight": 6,
+        "opacity": 0.95
+    }
+).add_to(mapa)
+
+
+# AUTOBAN - BANDEIRANTES
+folium.GeoJson(
+    gdf_autoban[
+        gdf_autoban["rodovia"] == "SP-348"
+    ].__geo_interface__,
+    name="SP-348 - Bandeirantes",
+    style_function=lambda x: {
+        "color": "cyan",
+        "weight": 6,
+        "opacity": 0.95
+    }
+).add_to(mapa)
+
+
+# AUTOBAN - DOM GABRIEL
+folium.GeoJson(
+    gdf_autoban[
+        gdf_autoban["rodovia"] == "SP-300"
+    ].__geo_interface__,
+    name="SP-300 - Dom Gabriel",
+    style_function=lambda x: {
+        "color": "violet",
+        "weight": 6,
+        "opacity": 0.95
+    }
+).add_to(mapa)
+
+
+# AUTOBAN - ADALBERTO PANZAN
+folium.GeoJson(
+    gdf_autoban[
+        gdf_autoban["rodovia"] == "SPI-102/330"
+    ].__geo_interface__,
+    name="SPI-102/330 - Adalberto Panzan",
+    style_function=lambda x: {
+        "color": "lime",
+        "weight": 6,
+        "opacity": 0.95
+    }
 ).add_to(mapa)
 
 # ============================================================
@@ -356,7 +434,9 @@ for ponto in pontos_teste:
 #
 # ============================================================
 
-folium.LayerControl().add_to(mapa)
+folium.LayerControl(
+    collapsed=False
+).add_to(mapa)
 
 # ============================================================
 # FERRAMENTA DE DESENHO MANUAL
@@ -375,9 +455,6 @@ folium.LayerControl().add_to(mapa)
 # - apresentações
 # - simulações
 #
-# ============================================================
-# ============================================================
-# FERRAMENTA DE DESENHO MANUAL
 # ============================================================
 
 Draw(
@@ -464,11 +541,11 @@ Draw(
 #
 # ============================================================
 
-mapa.save("trecho_oeste_rodoanel.html")
+mapa.save("mapa_rodovias.html")
 
 # ============================================================
 # 15. MENSAGEM FINAL
 # ============================================================
 
 print("Mapa gerado com sucesso!")
-print("Arquivo salvo como: trecho_oeste_rodoanel.html")
+print("Arquivo salvo como: mapa_rodovias.html")
